@@ -1,14 +1,15 @@
 import random
 from connopt import get_c
 import hashlib
-
+from datetime import datetime
 
 class Data:
     def __init__(self):
         self.conn = get_c()
         self.cursor = self.conn.cursor()
         self.help = Helping()
-    
+        
+        
     def insert_user(self, user, password):
         sql = 'INSERT INTO users(user, hash) values (%s, %s)'
         hesh = self.help.take_hesh(password)#использую слово 'hesh' вместо 'hash', т.к. второе зарезервировано
@@ -19,29 +20,23 @@ class Data:
         
     def autorize(self, user, password):
         hesh = self.help.take_hesh(password)
-        word = 'SELECT id, user, hash FROm Users WHERE user="'+user+'";'
+        word = 'SELECT user, hash FROm Users WHERE user="'+user+'" AND hesh="'+str(hesh)+'";'
         self.cursor.execute(word)
         result = self.cursor.fetchall()
-        if len(result)==0:
-            print('There no such users')
-            return
-        if result[0]['hash'] == hesh:
-            sessi = 'INSERT INTO Session(user_id, sess) values(%s, %s)'
-            self.cursor.execute(sessi, (result[0]['id'], result[0]['user']))
-            self.conn.commit()
-            sessid = 'SELECT Max(id) FROM Session;'
-            self.cursor.execute(sessid)
-            res = self.cursor.fetchall()
-            print("You're Welcome!")
-            return(res[0]['Max(id)'])
-        else:
-            print('Your password is incorrect. Please, try again.')
+        sessi = 'INSERT INTO Session(user_id, sess) values(%s, %s)'
+        new_sess = user+str(datetime.now())
+        sess = self.help.take_hesh(new_sess)
+        self.cursor.execute(sessi, (result[0]['id'], sess))
+        self.conn.commit()
+        print("You're Welcome!")
+        return(sess)
+
 
     def quit_session(self, sess):
-        sessi = 'DELETE FROM Session WHERE id="'+str(sess)+'";'
+        sessi = 'DELETE FROM Session WHERE sess="'+str(sess)+'";'
         self.cursor.execute(sessi)
         self.conn.commit()
-        print(str(sess)+' is quit')
+        print('Quites')
         
     def view_users(self):
         sql = 'SELECT id, user FROM Users'
@@ -49,8 +44,8 @@ class Data:
         result = self.cursor.fetchall()
         for user in result:
             print('id : {}  -  user : {}'.format(user['id'], user['user']))
-                    
-                
+
+            
 class Blogs(Data):
     def __init__(self):
         self.conn = get_c()
@@ -207,17 +202,14 @@ class Commentary(Data):
             print('No users chosen')
         else:
             print('blog N'+str(blog_id))
+            read_sql = 'SELECT user_id, comment FROM Comments LEFT JOIN Blog_post Using(post_id) Where blog_id="'+str(blog_id)+'";'
+            self.cursor.execute(read_sql)
+            comments = self.cursor.fetchall()
             for i in user_id:
-                read_sql = 'SELECT c.id, c.user_id, c.comment, bp.blog_id FROM comments c, blog_post bp WHERE c.user_id="'+str(i)+'" AND bp.blog_id="'+str(blog_id)+'" AND c.post_id = bp.post_id;'
-                self.cursor.execute(read_sql)
-                comments = self.cursor.fetchall()
-                if len(comments)==0:
-                    print('No comments from '+str(i)+' here :( ')
-                else:
-                    print('Comments from user N'+str(i))
-                    
-                    for i in range(len(comments)):
-                        print(comments[i]['comment'])
+                for k in comments:
+                    if k['user_id']==i:
+                        print(k['comment'])
+
 
     def get_comment_line(self, comment_id):#получение дерева комментариев к comment_id (доп. задание)
         sql = 'SELECT id FROM Comments WHERE comment_id='+str(comment_id)+';'
@@ -240,7 +232,7 @@ class Helping(Data):
         self.cursor = self.conn.cursor()
         
     def get_user(self, sess):
-        sql = 'SELECT user_id FROM Session Where id="'+str(sess)+'";'
+        sql = 'SELECT user_id FROM Session Where sess="'+str(sess)+'";'
         self.cursor.execute(sql)
         result = self.cursor.fetchall()
         if len(result)==0:
@@ -268,6 +260,11 @@ class Helping(Data):
             return False
 
 
+                    
+D=Data()
+D.autorize('Man','Man')
+C=Commentary()
+C.get_comments(1, 5)
 
 
 

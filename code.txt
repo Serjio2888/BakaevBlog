@@ -14,10 +14,10 @@ CREATE TABLE Session
 (
 	id INT NOT NULL Primary Key AUTO_INCREMENT,
 	user_id INT,
-	active TINYINT(1) DEFAULT 1,
 	sess CHAR(255),
 	CONSTRAINT fk_session_users FOREIGN KEY (user_id)  REFERENCES Users (Id)
-	ON DELETE CASCADE
+	ON DELETE CASCADE,
+	UNIQUE (sess)
 )Engine=InnoDB;
 
 CREATE TABLE Blog
@@ -27,8 +27,7 @@ CREATE TABLE Blog
 	deleted TINYINT(1) DEFAULT 0,
 	user_id INT,
 	CONSTRAINT fk_blog_users FOREIGN KEY (user_id)  REFERENCES Users (Id)
-	ON DELETE NO ACTION
-	ON UPDATE NO ACTION,
+	ON DELETE SET NULL,
 	UNIQUE (name)
 )Engine=InnoDB;
 
@@ -46,6 +45,7 @@ CREATE TABLE Post
 
 CREATE TABLE Blog_Post
 (
+	id INT NOT NULL AUTO_INCREMENT,
 	blog_id INT,
 	post_id INT,
 	CONSTRAINT fk_table_blog FOREIGN KEY (blog_id)  REFERENCES Blog (Id)
@@ -63,16 +63,15 @@ CREATE TABLE Comments
 	comment TEXT,
 	PRIMARY KEY(id),
 	CONSTRAINT fk_comms_post FOREIGN KEY (post_id)  REFERENCES Post (Id)
-	ON DELETE NO ACTION ON UPDATE NO ACTION,
+	ON DELETE SET NULL,
 	CONSTRAINT fk_comms_user FOREIGN KEY (user_id)  REFERENCES Users (Id)
-	ON DELETE NO ACTION ON UPDATE NO ACTION,
+	ON DELETE SET NULL,
 	CONSTRAINT fk_comms_comm FOREIGN KEY (comment_id)  REFERENCES Comments (Id)
-	ON DELETE NO ACTION ON UPDATE NO ACTION
+	ON DELETE SET NULL
 )Engine=InnoDB;
 
 
-alter table Users add index i_user (user);
-alter table Blog add index i_deleted (deleted);
+alter table Users add index i_user_hesh (user, hesh);
 alter table Comments add index i_comment (comment_id);
 alter table Comments add index i_user (user_id);
 
