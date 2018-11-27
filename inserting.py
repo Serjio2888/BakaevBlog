@@ -130,10 +130,10 @@ class Insert:
 
 def main():
     I = Insert()
-    I.user_insert()
-    I.blog_insert()
-    I.post_insert()
-    I.comm_insert()
+    I.user_insert(100)
+    #I.blog_insert()
+    #I.post_insert()
+    #I.comm_insert()
 
 if __name__ == '__main__':
     main()
@@ -141,5 +141,3 @@ if __name__ == '__main__':
 
 
 
-
-    

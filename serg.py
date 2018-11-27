@@ -212,18 +212,17 @@ class Commentary(Data):
 
 
     def get_comment_line(self, comment_id):#получение дерева комментариев к comment_id (доп. задание)
-        sql = 'SELECT id FROM Comments WHERE comment_id='+str(comment_id)+';'
-        self.cursor.execute(sql)
+        join = 'SELECT c2.id, c2.comment_id, c2.comment FROM Comments c1 JOIN Comments c2 on c1.post_id'\
+                '= c2.post_id where c1.id="'+str(comment_id)+'";'
+        self.cursor.execute(join)
         ids = self.cursor.fetchall()
-        if len(ids)==0:
-            pass
-        else:
-            for i in ids:
-                printer = 'SELECT comment FROM Comments WHERE id='+str(i['id'])+';'
-                self.cursor.execute(printer)
-                comment = self.cursor.fetchone()
-                print('---'+comment['comment']+'--- to comment N'+str(comment_id))
-                self.get_comment_line(i['id'])
+        comment_ids = list()
+        comment_ids.append(comment_id)
+        for i in ids:
+            if i['comment_id'] in comment_ids:
+                print (i['comment'])
+                comment_ids.append(i['id'])
+##
 
                     
 class Helping(Data):
@@ -262,9 +261,9 @@ class Helping(Data):
 
                     
 D=Data()
-D.autorize('Man','Man')
+#D.autorize('Man','Man')
 C=Commentary()
-C.get_comments(1, 5)
+C.get_comment_line(1)
 
 
 
